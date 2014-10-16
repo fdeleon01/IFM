@@ -14,9 +14,6 @@
  * function name: completePreMadeItems.
  * Date: 21-08-2014.
  * Comment: so the rule is : not enough stock or out of stock if the item is premade , assign all the qty to the MB and complete with eaches
- * function name: checkIsElegible.
- * Date: 14-10-2014.
- * Comment: this function is for check if the Item on the sales order is elegible or not
  * FabianDe Leon
  *****************************************************/
  
@@ -1041,6 +1038,10 @@ function itemWithOutStock(internalidItem,itemqty,actualRecord,myQtyCompare,messa
 
                var parentRecord = nlapiLoadRecord('itemgroup', actualRecord.getLineItemValue('item', 'item', j));
                parentFind = true;
+               var lineNumParent = j;
+               actualRecord.selectLineItem('item', lineNumParent); 
+               actualRecord.setCurrentLineItemValue('item','custcol_ifm_error',''); 
+               actualRecord.commitLineItem('item'); 
                   
              }   
             if (actualRecord.getLineItemValue('item', 'units_display', j) && parentFind) {
@@ -1327,6 +1328,9 @@ function completeinHouse(internalidItem,itemqty,actualRecord,qtyGroup,message){
                var parentRecord = nlapiLoadRecord('itemgroup', actualRecord.getLineItemValue('item', 'item', j));
                parentFind = true;
                var lineNumParent = j;
+               actualRecord.selectLineItem('item', lineNumParent); 
+               actualRecord.setCurrentLineItemValue('item','custcol_ifm_error',''); 
+               actualRecord.commitLineItem('item'); 
                   
              }   
               if (actualRecord.getLineItemValue('item', 'units_display', j) && parentFind) {
@@ -1350,6 +1354,7 @@ function completeinHouse(internalidItem,itemqty,actualRecord,qtyGroup,message){
                                      actualRecord.setCurrentLineItemValue('item', 'custcol5', "T"); 
                                      actualRecord.setCurrentLineItemValue('item', 'quantity', myPackage);
                                      actualRecord.commitLineItem('item'); 
+                                     qty = myPackage;
                                 }
                             }
 
