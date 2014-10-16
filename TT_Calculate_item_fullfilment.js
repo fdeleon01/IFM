@@ -14,6 +14,9 @@
  * function name: completePreMadeItems.
  * Date: 21-08-2014.
  * Comment: so the rule is : not enough stock or out of stock if the item is premade , assign all the qty to the MB and complete with eaches
+ * function name: checkIsElegible.
+ * Date: 14-10-2014.
+ * Comment: this function is for check if the Item on the sales order is elegible or not
  * FabianDe Leon
  *****************************************************/
  
