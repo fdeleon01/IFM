@@ -40,6 +40,8 @@ function saleOrderWeb(type,record) {
         var containsWalmart = (walmartField.indexOf('Walmart') != -1);
         var setingItem = false;
         var arrayItemsIndividuales = [];
+        var aux = 0;
+        var valueInAmazon = 0;
         actualRecord.setFieldValue('custbody10','F');
        
 
@@ -73,8 +75,7 @@ function saleOrderWeb(type,record) {
 
         try {
             for (var j = 0; j <= itemqty; j++) {
-                var aux = 0;
-                var valueInAmazon = 0;
+              
                 var typeItem = actualRecord.getLineItemValue('item', 'itemtype', j + 1);
                 var setingInEa = false;
 
@@ -330,7 +331,7 @@ function saleOrderWeb(type,record) {
 
                             if (stockAvailavle != 0) {
                                 if (myQty < stockAvailavle) {
-                                    while (myQty != 0) {
+                                    if(myQty != 0) {
                                         myQty--;
                                         myPackage++;
                                     }
@@ -368,10 +369,9 @@ function saleOrderWeb(type,record) {
                             nlapiLogExecution('debug', 'case #3.1 ', 'myQty :' + myQty + ',numberBigger :' + numberBigger + ',stockAvailavle :' + stockAvailavle);
                             if (myQty >= numberBigger && stockAvailavle >= myQty) {//aca esta todo ok se puede descontar de las cantidades y mostrar el resultado
                                 nlapiLogExecution('debug', 'enter to case 3.1', '');
-                                while (myQty >= numberBigger && stockAvailavle >= numberBigger) {
-                                    stockAvailavle = stockAvailavle - numberBigger;
-                                    myQty = myQty - numberBigger;
-                                    myPackage++
+                                if (myQty >= numberBigger && stockAvailavle >= numberBigger) {
+                                        myPackage = Math.floor(myQty / numberBigger);
+                                        myQty = myQty - Math.floor(myPackage * numberBigger);
                                 }
                                 //actualRecord.setCurrentLineItemValue('item','quantity',myPackage);
                                 if (allowGeneralItem == false) {
@@ -386,7 +386,7 @@ function saleOrderWeb(type,record) {
                                 actualRecord.setCurrentLineItemValue('item', 'custcol2', '');
 
                                 if (soIsAmazon) {
-                                    nlapiLogExecution('debug', 'ama1.0- soIsAmazon :' + soIsAmazon);
+                                    
                                     amazonBox = amazonBox + myPackage;
                                     actualRecord.setFieldValue('custbody_so_amazontotalcarton', amazonBox);
                                     if (valueInAmazon == 0) {
@@ -407,10 +407,10 @@ function saleOrderWeb(type,record) {
 
                             } else if (myQty >= numberBigger && stockAvailavle < myQty && inHouse != 1) {
                                 nlapiLogExecution('debug', 'enter to case 3.2', '');
-                                while (myQty >= numberBigger && stockAvailavle >= numberBigger) {
-                                    stockAvailavle = stockAvailavle - numberBigger;
-                                    myQty = myQty - numberBigger;
-                                    myPackage++
+                                if(myQty >= numberBigger && stockAvailavle >= numberBigger) {
+                        
+                                    myPackage = Math.floor(stockAvailavle / numberBigger);
+                                    myQty = myQty - (myPackage * numberBigger)
                                 }
                                 // actualRecord.setCurrentLineItemValue('item','quantity',myPackage);
                                 if (allowGeneralItem == false) {
@@ -956,7 +956,7 @@ function saleOrderWeb(type,record) {
 
         }*/
         //Setting Box - of Quantity.....
-        if (soIsAmazon) {
+        /*if (soIsAmazon) {
 
             for (var si = 0; si < actualRecord.getLineItemCount('item'); si++) {
                 var Quantity = actualRecord.getLineItemValue('item', 'quantity', si + 1);
@@ -979,7 +979,7 @@ function saleOrderWeb(type,record) {
                 //actualRecord.commitLineItem('item');
 
             }
-        }
+        }*/
         try {
             nlapiSubmitRecord(actualRecord, true, true);
         } catch (e) {
