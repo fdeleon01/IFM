@@ -19,6 +19,8 @@
  
 var availableQuantity = '';
 var ItemCaseNumber = '';
+var totalAmazonBox = 0;
+var compareAmazonBox = 0;
 
 function saleOrderWeb(type,record) {
 
@@ -41,7 +43,7 @@ function saleOrderWeb(type,record) {
         var setingItem = false;
         var arrayItemsIndividuales = [];
         var aux = 0;
-        var valueInAmazon = 0;
+        var valueInAmazon = 0;        
         actualRecord.setFieldValue('custbody10','F');
        
 
@@ -112,44 +114,7 @@ function saleOrderWeb(type,record) {
 
                 }
 
-                /*if (typeItem == 'EndGroup' && myQty > 0 && soIsWholsale) {
 
-                    filter[0] = new nlobjSearchFilter('internalid', null, 'is', internalid);
-                    var searchResult = new nlapiSearchRecord(null, 109, filter, null);
-                    var stockAvailavle = searchResult[0].getValue('custitemavailable_to_use');
-                    var upcprint = searchResult[0].getValue('custitem_tt_upcprint');
-                    try {
-                        var myItemRecord = nlapiLoadRecord('assemblyitem', internalid);
-                    } catch (e) {
-                        nlapiLogExecution('ERROR', 'TYPE', 'Failed Load Record');
-                    }
-                    try {
-                        var inHouse = myItemRecord.getFieldValue('custitem_itemtype');
-                    } catch (e) {
-
-                    }
-                    if (inHouse != 1) {
-                        actualRecord.selectLineItem('item', j);
-                        if (myQty >= numberBigger && stockAvailavle >= myQty) //aca esta todo ok se puede descontar de las cantidades y mostrar el resultado
-                        {
-                            while (myQty >= numberBigger && stockAvailavle >= numberBigger) {
-                                stockAvailavle = stockAvailavle - numberBigger;
-                                myQty = myQty - numberBigger;
-                                myPackage++
-                           actualRecord.setCurrentLineItemValue('item','quantity',myPackage);
-                            if (allowGeneralItem == false) {
-                                actualRecord.setCurrentLineItemValue('item', 'quantity', myPackage);
-                            } else {
-                                actualRecord.setCurrentLineItemValue('item', 'quantity', myQtyCsrView);
-                            }
-                            nlapiLogExecution('debug', 'InStock Here 1', 'mypackage :' + myPackage + ',myQty :' + myQty);
-                            actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "In Stock");
-                            actualRecord.setCurrentLineItemValue('item', 'custcolupcrinting', upcprint);
-                            actualRecord.setCurrentLineItemValue('item', 'custcol2', '');
-                            actualRecord.commitLineItem('item');
-                        }
-                    }
-                }*/
                 if (actualRecord.getLineItemValue('item', 'units_display', j + 1)) {
                     try {
                         var num = parseFloat(actualRecord.getLineItemValue('item', 'units_display', j + 1).split('CS')[1]);
@@ -285,6 +250,7 @@ function saleOrderWeb(type,record) {
                         }
                         actualRecord.selectLineItem('item', j + 1);
                         actualRecord.setCurrentLineItemValue('item', 'custcol_tt_solinenum', j + 1);
+                        actualRecord.setCurrentLineItemValue('item', 'custcol2', '');//clean Amazon box before run the logic
 
                         var itemIndividual = loadItem(actualRecord.getLineItemValue('item', 'item', j + 1));        
                         var myItemElegible = itemIndividual.getFieldTexts('custitem2').indexOf(actualRecord.getFieldText('department'))!=-1;
@@ -981,6 +947,7 @@ function saleOrderWeb(type,record) {
             }
         }*/
         try {
+            if(soIsAmazon && totalAmazonBox > 0){actualRecord.setFieldValue('custbody_so_amazontotalcarton', totalAmazonBox)}            
             nlapiSubmitRecord(actualRecord, true, true);
         } catch (e) {
             nlapiLogExecution('error', 'function', e);
@@ -1045,10 +1012,11 @@ function itemWithOutStock(internalidItem,itemqty,actualRecord,myQtyCompare,messa
                   
              }   
             if (actualRecord.getLineItemValue('item', 'units_display', j) && parentFind) {
-                    
+                  
                 var numberBigger = parseFloat(actualRecord.getLineItemValue('item', 'units_display', j).split('CS')[1]);
                 if(parentFind && !flagSet){
                                 actualRecord.selectLineItem('item', j); 
+                                actualRecord.setCurrentLineItemValue('item', 'custcol2', '');
                                 actualRecord.setCurrentLineItemValue('item', 'quantity', myQtyCompare);
                                 actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', message);
                                 actualRecord.setCurrentLineItemValue('item', 'custcol5', "T"); 
@@ -1400,14 +1368,23 @@ function closeItems(internalidItem,itemqty,actualRecord,message){
                   
              }   
             if (actualRecord.getLineItemValue('item', 'units_display', j) && parentFind) {
-                    
+
                 var numberBigger = parseFloat(actualRecord.getLineItemValue('item', 'units_display', j).split('CS')[1]);
                 if(parentFind && numberBigger){
                 var myMessage = actualRecord.getLineItemValue('item', 'custcol_tt_igstatus', j);
                 var itemIndividual = loadItem(actualRecord.getLineItemValue('item', 'item', j));
                 var myItemElegible = checkIsElegible(actualRecord.getFieldText('department'),itemIndividual.getFieldTexts('custitem2'))     
-                
+                /***********/
+                var amazonBoxActual = actualRecord.getLineItemValue('item', 'custcol2', j);
+                if(amazonBoxActual.split('-')[1] && firstMessage == 'In Stock'){
+                   
+                   if(parseFloat(amazonBoxActual.split('-')[1]) > compareAmazonBox){
+                      totalAmazonBox = parseFloat(amazonBoxActual.split('-')[1]);
+                      compareAmazonBox = totalAmazonBox;
+                   }
+                }
 
+                /************/
                 if(!myItemElegible && firstMessage == 'In Stock'){
                     message = 'Not Eligible';
                 }else{
