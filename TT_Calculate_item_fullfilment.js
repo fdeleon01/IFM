@@ -21,7 +21,7 @@ var availableQuantity = '';
 var ItemCaseNumber = '';
 var totalAmazonBox = 0;
 var compareAmazonBox = 0;
-
+var amazonflagForDiscount = false;
 function saleOrderWeb(type,record) {
 
     try {
@@ -100,7 +100,15 @@ function saleOrderWeb(type,record) {
                     var parentRecord = nlapiLoadRecord('itemgroup', actualRecord.getLineItemValue('item', 'item', j + 1));
                     thisParntItem.MBID = parentRecord.getLineItemValue('member', 'item', 1);
                     thisParntItem.IBID = parentRecord.getLineItemValue('member', 'item', 2);
-                    thisParntItem.EBID = parentRecord.getLineItemValue('member', 'item', 3);
+                    thisParntItem.EBID = parentRecord.getLineItemValue('member', 'item', 3);                    
+                    var myQtyCompareParent = parseFloat(parentRecord.getFieldValue("custitemavailable_to_use"));
+                    if (isNaN(myQtyCompare)) myQtyCompare = 0;
+                    if(myQty <= myQtyCompareParent && soIsAmazon){
+                        amazonflagForDiscount = true;
+                    }else{
+                        amazonflagForDiscount = false;
+                    }
+
                     var parentId = actualRecord.getLineItemValue('item', 'item', j + 1);
                     var myRecordParent = nlapiLoadRecord('itemgroup', parentId);
                     var parentName = myRecordParent.getFieldValue('itemid');
@@ -351,7 +359,7 @@ function saleOrderWeb(type,record) {
                                 actualRecord.setCurrentLineItemValue('item', 'custcol_tt_qtyperbox', numberBigger);
                                 actualRecord.setCurrentLineItemValue('item', 'custcol2', '');
 
-                                if (soIsAmazon) {
+                                if (soIsAmazon && amazonflagForDiscount) {
                                     
                                     amazonBox = amazonBox + myPackage;
                                     actualRecord.setFieldValue('custbody_so_amazontotalcarton', amazonBox);
@@ -389,7 +397,7 @@ function saleOrderWeb(type,record) {
                                 actualRecord.setCurrentLineItemValue('item', 'custcol_tt_qtyperbox', numberBigger);
                                 actualRecord.setCurrentLineItemValue('item', 'custcol2', '');
 
-                                if (soIsAmazon) {
+                                if (soIsAmazon && amazonflagForDiscount) {
                                     nlapiLogExecution('debug', 'ama2- soIsAmazon :' + soIsAmazon);
                                     amazonBox = amazonBox + myPackage;
                                     actualRecord.setFieldValue('custbody_so_amazontotalcarton', amazonBox);
@@ -428,7 +436,7 @@ function saleOrderWeb(type,record) {
                                     actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "Out of Stock");
                                 }
 
-                                if (soIsAmazon) {
+                                if (soIsAmazon && amazonflagForDiscount) {
                                     amazonBox = amazonBox + myPackage;
                                     actualRecord.setFieldValue('custbody_so_amazontotalcarton', amazonBox);
                                     if (valueInAmazon == 0) {
@@ -504,7 +512,7 @@ function saleOrderWeb(type,record) {
                             actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "Not Enough Stock");
                             actualRecord.setCurrentLineItemValue('item', 'custcol2', '');
                             actualRecord.setCurrentLineItemValue('item', 'custcolupcrinting', myUpcprint);
-                            if (soIsAmazon) {
+                            if (soIsAmazon && amazonflagForDiscount) {
                                 amazonBox = amazonBox + myPackage;
                                 actualRecord.setFieldValue('custbody_so_amazontotalcarton', amazonBox);
                                 if (valueInAmazon == 0) {
@@ -576,7 +584,7 @@ function saleOrderWeb(type,record) {
                                 }
                                 actualRecord.setCurrentLineItemValue('item', 'custcolupcrinting', myUpcprint);
                                 actualRecord.setCurrentLineItemValue('item', 'custcol_tt_qtyperbox', numberBigger);
-                                if (soIsAmazon) {
+                                if (soIsAmazon && amazonflagForDiscount) {
                                     amazonBox = amazonBox + myPackage;
                                     actualRecord.setFieldValue('custbody_so_amazontotalcarton', amazonBox);
                                     if (valueInAmazon == 0) {
@@ -622,7 +630,7 @@ function saleOrderWeb(type,record) {
                                         myQty = myQty - numberBigger;
                                         myPackage++
                                     }
-                                    if (soIsAmazon) {
+                                    if (soIsAmazon && amazonflagForDiscount) {
                                         amazonBox = amazonBox + myPackage;
                                         actualRecord.setFieldValue('custbody_so_amazontotalcarton', amazonBox);
                                         if (valueInAmazon == 0) {
@@ -639,7 +647,7 @@ function saleOrderWeb(type,record) {
                                     } else {
                                         actualRecord.setFieldValue('custbody_so_amazontotalcarton', '');
                                     }
-                                    if (soIsAmazon) {
+                                    if (soIsAmazon && amazonflagForDiscount) {
                                         amazonBox = amazonBox + myPackage;
                                         actualRecord.setFieldValue('custbody_so_amazontotalcarton', amazonBox);
                                         if (valueInAmazon == 0) {
