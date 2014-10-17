@@ -714,9 +714,9 @@ function saleOrderWeb(type,record) {
                         }
                     }
                     if (myPackage != 0) {
-                        /* var totoalToSet = parseFloat(quantity) - (myPackage * numberBigger);
-                         nlapiSubmitField(searchResult[0].getRecordType(),searchResult[0].getId(),'custitemavailable_to_use',totoalToSet);*/
-                        nlapiSubmitField(searchResult[0].getRecordType(), searchResult[0].getId(), 'custitem3', 'F');
+                         var totoalToSet = parseFloat(quantity) - (myPackage * numberBigger);
+                         nlapiSubmitField(searchResult[0].getRecordType(),searchResult[0].getId(),'custitemavailable_to_use',totoalToSet);
+                         nlapiSubmitField(searchResult[0].getRecordType(), searchResult[0].getId(), 'custitem3', 'F');
 
                     }
                 }
