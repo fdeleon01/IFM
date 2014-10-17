@@ -1058,10 +1058,11 @@ function itemWithOutStock(internalidItem,itemqty,actualRecord,myQtyCompare,messa
                 }
                  if(numberBigger){
                                 flagSet = false;   
-                                while (myQtyCompare >= numberBigger) {
-                                    myQtyCompare = myQtyCompare - numberBigger;                            
-                                    myPackage++
+                                if(myQtyCompare >= numberBigger) {                                   
+                                    myPackage = Math.floor(myQtyCompare / numberBigger); 
+                                    myQtyCompare = myQtyCompare - Math.floor(myPackage * numberBigger);
                                 }
+
                                 
                                 actualRecord.selectLineItem('item', j); 
                                 actualRecord.setCurrentLineItemValue('item', 'quantity', myPackage);
