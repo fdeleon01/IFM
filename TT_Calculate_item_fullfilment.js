@@ -95,6 +95,7 @@ function saleOrderWeb(type,record) {
                     allowGeneralItem = false;
                     var thisParntItem = new Object();
                     var myQty = parseFloat(actualRecord.getLineItemValue('item', 'quantity', j + 1));
+
                     myQty2 += myQty;
                     thisParntItem.internalid = actualRecord.getLineItemValue('item', 'item', j + 1);
                     var parentRecord = nlapiLoadRecord('itemgroup', actualRecord.getLineItemValue('item', 'item', j + 1));
@@ -110,8 +111,11 @@ function saleOrderWeb(type,record) {
                     }
 
                     var parentId = actualRecord.getLineItemValue('item', 'item', j + 1);
+                    var miId = parentId;
                     var myRecordParent = nlapiLoadRecord('itemgroup', parentId);
                     var parentName = myRecordParent.getFieldValue('itemid');
+
+                    consumptionOnTaGroup(miId,myQty);
                 }
                 
                 if (typeItem != 'EndGroup' && typeItem != 'EndGroup'){// for set individual items.
@@ -713,10 +717,7 @@ function saleOrderWeb(type,record) {
                             }
                         }
                     }
-                    if (myPackage != 0) {                         
-                         nlapiSubmitField(searchResult[0].getRecordType(), searchResult[0].getId(), 'custitem3', 'F');
-
-                    }
+            
                 }
 
             }
@@ -876,7 +877,8 @@ function saleOrderWeb(type,record) {
             }
 
         }
-        consumptionOnTaLast(actualRecord);
+      
+        
 
         //****** Status Fields ***********///
         var instock = true;
@@ -884,6 +886,7 @@ function saleOrderWeb(type,record) {
         try {
             if(soIsAmazon && totalAmazonBox > 0){actualRecord.setFieldValue('custbody_so_amazontotalcarton', totalAmazonBox)}            
             nlapiSubmitRecord(actualRecord, true, true);
+            
         } catch (e) {
             nlapiLogExecution('error', 'function', e);
 
@@ -972,6 +975,7 @@ function itemWithOutStock(internalidItem,itemqty,actualRecord,myQtyCompare,messa
                                 actualRecord.setCurrentLineItemValue('item', 'custcol5', "T"); 
                                 actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', message);
                                 actualRecord.commitLineItem('item');
+
                                 if(myQtyCompare > 0){
                                     actualRecord.selectNewLineItem('item');
                                     actualRecord.setCurrentLineItemValue('item', 'item', actualRecord.getLineItemValue('item', 'item', j));
@@ -1035,6 +1039,8 @@ function completePreMadeItems(internalidItem,itemqty,actualRecord,qtyGroup,messa
                   myItemObject.stock = stockAvailableOnItem;
                   myItemObject.lineNum = j;
                   myItemObject.internalid = actualRecord.getLineItemValue('item', 'item', j);
+                  myItemObject.name = actualRecord.getLineItemText('item', 'item', j);
+
 
                   if(myMessage == 'Not Eligible'){
                      
@@ -1084,6 +1090,7 @@ function completePreMadeItems(internalidItem,itemqty,actualRecord,qtyGroup,messa
                                      actualRecord.setCurrentLineItemValue('item', 'quantity', myPackage);
                                      actualRecord.commitLineItem('item'); 
                                      qty = myPackage;
+
                                      
                               }
     
@@ -1125,6 +1132,7 @@ function completePreMadeItems(internalidItem,itemqty,actualRecord,qtyGroup,messa
                   if(lost > 0){
                      for (var i = 1; i < arrayItemsToCompare.length; i++) {
                          if(arrayItemsToCompare[i].available > 0){
+                            consumptionOnTaOtherItemsWithRemainder(arrayItemsToCompare,remainder,arrayItemsToCompare[i].name)
                             addingNewItems(actualRecord,arrayItemsToCompare[i].internalid,arrayItemsToCompare[i].available)
                             lost = lost - arrayItemsToCompare[i].available;
                          }
@@ -1141,6 +1149,7 @@ function completePreMadeItems(internalidItem,itemqty,actualRecord,qtyGroup,messa
                    if(lost > 0){
                      for (var i = 1; i < arrayItemsToCompare.length; i++) {
                          if(arrayItemsToCompare[i].available > 0){
+                            consumptionOnTaOtherItemsWithRemainder(arrayItemsToCompare,remainder,arrayItemsToCompare[i].name)
                             addingNewItems(actualRecord,arrayItemsToCompare[i].internalid,arrayItemsToCompare[i].available)
                             lost = lost - arrayItemsToCompare[i].available;
                          }
@@ -1152,6 +1161,7 @@ function completePreMadeItems(internalidItem,itemqty,actualRecord,qtyGroup,messa
               }else if(parseFloat(arrayItemsToCompare[0].available) >= parseFloat(remainder)){
                       
                        //actualRecord.setFieldValue('custbody10','F');
+                       
                        completePremadideRemainder(internalidItem,itemqty,actualRecord,qtyGroup,message,remainder);
               
               }else if(parseFloat(arrayItemsToCompare[0].available) == 0){
@@ -1165,7 +1175,12 @@ function completePreMadeItems(internalidItem,itemqty,actualRecord,qtyGroup,messa
                 setColumnStatusAdding(actualRecord,lineNumParent,addingitems);
             }
      
-     
+          if(remainder == 0){
+            consumptionOnTaOtherItemsWithOutRemainder(arrayItemsToCompare);
+          }else{
+            var typeRemainder = 'MB'
+            consumptionOnTaOtherItemsWithRemainder(arrayItemsToCompare,remainder,typeRemainder)
+          }
 
 }
 
@@ -1512,91 +1527,61 @@ function addingNewItems(actualRecord,internalidItem,remainder){
 
 }
 
-function consumptionOnTaLast(actualRecord){
+function consumptionOnTaGroup(miId,myQty){
 
-
- var itemqty = actualRecord.getLineItemCount('item');
- var totalToDiscount = 0;
- var array = [];
-
-        for (var j = 1; j <= itemqty; j++) {             
-            
-            var myPackage = 0;    
-            var itemIdCompare = actualRecord.getLineItemValue('item', 'item', j);
-            
-            var typeItem = actualRecord.getLineItemValue('item', 'itemtype', j);
-            
-           
-             if(typeItem != 'EndGroup' && typeItem != 'Group'){
-
-                  if (actualRecord.getLineItemValue('item', 'units_display', j)) {
-                  
-                  var itemIndividual = loadItem(actualRecord.getLineItemValue('item', 'item', j));
-                  var totalAvailable = parseFloat(itemIndividual.getFieldValue('custitemavailable_to_use'));
-                  var multiPlo = parseFloat(actualRecord.getLineItemValue('item', 'units_display', j).split('CS')[1]);
-                  var eAches = actualRecord.getLineItemValue('item', 'units_display', j).indexOf('EA')!=-1;
-                  if(eAches){
-                      multiPlo = 1;
-                      var qty = parseFloat(actualRecord.getLineItemValue('item', 'quantity', j));
-                      var totalConsuption = totalAvailable - (qty*multiPlo);
-                      if(totalConsuption > 0){nlapiSubmitField(itemIndividual.getRecordType(),itemIndividual.getFieldValue('internalid'),'custitemavailable_to_use',totalConsuption,true);}
-                      var totalToDiscount = qty*multiPlo;
-                      var name = actualRecord.getLineItemText('item', 'item', j).replace('-IB','').replace('-MB','').replace('-EB','');
-                      var go = false;
-                      for (var i = 0; i < array.length && !go; i++) {
-                          if(name.indexOf(array[i].name)!=-1){
-                             var totalDiscountIn = array[i].total - totalToDiscount;
-
-                             if(totalDiscountIn>0){
-                                nlapiSubmitField('itemgroup',array[i].id,'custitemavailable_to_use',totalDiscountIn,true);
-                             }else{
-                                nlapiSubmitField('itemgroup',array[i].id,'custitemavailable_to_use',0,true);
-                             }
-                             
-                             go=true;
-                          }
-                      };
-
-                  }else{
-                  var qty = parseFloat(actualRecord.getLineItemValue('item', 'quantity', j));
-                  var totalConsuption = totalAvailable - (qty*multiPlo);
-                  totalToDiscount += qty*multiPlo;
-                  }
-                 
-
-                  if(totalConsuption>0){
-                    nlapiSubmitField(itemIndividual.getRecordType(),itemIndividual.getFieldValue('internalid'),'custitemavailable_to_use',totalConsuption,true);
+                var parentRecord = nlapiLoadRecord('itemgroup', miId);               
+                var total = parseFloat(parentRecord.getFieldValue('custitemavailable_to_use'));
+                var totalConsuption = total - myQty;
+                if(totalConsuption>0){
+                   nlapiSubmitField('itemgroup', miId,'custitemavailable_to_use',totalConsuption,true);
+               
                 }else{
-                    nlapiSubmitField(itemIndividual.getRecordType(),itemIndividual.getFieldValue('internalid'),'custitemavailable_to_use',0,true);
+                      nlapiSubmitField('itemgroup', miId,'custitemavailable_to_use',0,true);
+               
                 }
-
-
-              }       
-
-              }else if(typeItem == 'Group'){
-                var parentRecord = nlapiLoadRecord('itemgroup', actualRecord.getLineItemValue('item', 'item', j));
-                var objectParent = {};
-                objectParent.total = parseFloat(parentRecord.getFieldValue('custitemavailable_to_use'));
-                objectParent.id = actualRecord.getLineItemValue('item', 'item', j);
-                objectParent.name = actualRecord.getLineItemText('item', 'item', j);
-                
-
-              }else if(typeItem == 'EndGroup'){
-
-               objectParent.total = objectParent.total - parseFloat(totalToDiscount);
-               array.push(objectParent);
                
-               if(totalToDiscount>0){
-                nlapiSubmitField('itemgroup',objectParent.id,'custitemavailable_to_use',objectParent.total,true);
-               }else{
-                nlapiSubmitField('itemgroup',objectParent.id,'custitemavailable_to_use',0,true);
-               }
-               
-               totalToDiscount = 0;
-              }
-            
-                    
-    }
+
+}
+
+function consumptionOnTaOtherItemsWithOutRemainder(arrayItemsToCompare){
+
+    for (var i = 0; i < arrayItemsToCompare.length; i++) {
+         
+         itemId = arrayItemsToCompare[i].internalid;
+         filter[0] = new nlobjSearchFilter('internalid', null, 'is', itemId);
+         var searchResult = new nlapiSearchRecord(null, 109, filter, null);
+          
+         nlapiSubmitField(searchResult[0].getRecordType(),searchResult[0].getId(),'custitemavailable_to_use',arrayItemsToCompare[i].available,'doSourcing');  
+ 
+
+    };
+
+
+}
+
+function consumptionOnTaOtherItemsWithRemainder(arrayItemsToCompare,remainder,typeRemainder){
+var filter = [];
+var itemId = '';
+for (var i = 0; i < arrayItemsToCompare.length; i++) {
+         if(arrayItemsToCompare[i].name.indexOf(typeRemainder)!=-1){
+         itemId = arrayItemsToCompare[i].internalid;
+         filter[0] = new nlobjSearchFilter('internalid', null, 'is', itemId);
+         var searchResult = new nlapiSearchRecord(null, 109, filter, null);
+         var discount = arrayItemsToCompare[i].available - remainder;
+         nlapiSubmitField(searchResult[0].getRecordType(),searchResult[0].getId(),'custitemavailable_to_use',discount,true);  
+ 
+
+         }else{
+         itemId = arrayItemsToCompare[i].internalid;
+         filter[0] = new nlobjSearchFilter('internalid', null, 'is', itemId);
+         var searchResult = new nlapiSearchRecord(null, 109, filter, null);
+         var discount = arrayItemsToCompare[i].available;
+         nlapiSubmitField(searchResult[0].getRecordType(),searchResult[0].getId(),'custitemavailable_to_use',discount,true);  
+ 
+
+         }
+         
+    };
 
 }
 
