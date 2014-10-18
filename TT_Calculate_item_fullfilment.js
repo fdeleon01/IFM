@@ -115,7 +115,7 @@ function saleOrderWeb(type,record) {
                     var myRecordParent = nlapiLoadRecord('itemgroup', parentId);
                     var parentName = myRecordParent.getFieldValue('itemid');
 
-                    consumptionOnTaGroup(miId,myQty);
+                   
                 }
                 
                 if (typeItem != 'EndGroup' && typeItem != 'EndGroup'){// for set individual items.
@@ -805,7 +805,8 @@ function saleOrderWeb(type,record) {
                         //completePreMadeItems(internalidItem,itemqty,actualRecord,qtyGroup,message);                        
                         //if(soIsWholsale) {completePreMadeItems(internalidItem,itemqty,actualRecord,qtyGroup,message)};
                         itemWithOutStock(internalidItem,itemqty,actualRecord,qtyGroup,message);
-                       
+                        
+                        consumptionOnTaGroup(internalidItem,qtyGroup);
                         actualRecord.selectLineItem('item', i);
                         actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "Not Enough Stock");
                         actualRecord.setCurrentLineItemValue('item', 'custcol5', "T"); 
@@ -818,7 +819,9 @@ function saleOrderWeb(type,record) {
                          closeItems(internalidItem,itemqty,actualRecord,message);
                         //if(soIsWholsale) {completePreMadeItems(internalidItem,itemqty,actualRecord,qtyGroup,message)};
                         itemWithOutStock(internalidItem,itemqty,actualRecord,qtyGroup,message);
-                       
+                        
+                        consumptionOnTaGroup(internalidItem,qtyGroup);
+
                         actualRecord.selectLineItem('item', i);
                         actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "Out Stock");
                         actualRecord.setCurrentLineItemValue('item', 'custcol5', "T"); 
