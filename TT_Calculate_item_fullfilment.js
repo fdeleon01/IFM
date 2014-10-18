@@ -713,9 +713,7 @@ function saleOrderWeb(type,record) {
                             }
                         }
                     }
-                    if (myPackage != 0) {
-                         var totoalToSet = parseFloat(quantity) - (myPackage * numberBigger);
-                         nlapiSubmitField(searchResult[0].getRecordType(),searchResult[0].getId(),'custitemavailable_to_use',totoalToSet);
+                    if (myPackage != 0) {                         
                          nlapiSubmitField(searchResult[0].getRecordType(), searchResult[0].getId(), 'custitem3', 'F');
 
                     }
@@ -774,7 +772,7 @@ function saleOrderWeb(type,record) {
         /***********start************/
 
         for (var i = 1; i <= itemqty; i++) {
-
+            var numberLineInParen = i;
             var typeItem = actualRecord.getLineItemValue('item', 'itemtype', i);
             if (typeItem == 'Group') {
                 var qtyGroup = parseFloat(actualRecord.getLineItemValue('item', 'quantity', i));
@@ -798,6 +796,8 @@ function saleOrderWeb(type,record) {
                     actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "In Stock");
                     actualRecord.setCurrentLineItemValue('item', 'custcol5', "T");                    
                     actualRecord.commitLineItem('item');
+
+                    
                 } else if (qtyGroup > myQtyCompare && myQtyCompare > 0) {
                         var message = "Not Enough Stock";
                         closeItems(internalidItem,itemqty,actualRecord,message);
@@ -810,6 +810,8 @@ function saleOrderWeb(type,record) {
                         actualRecord.setCurrentLineItemValue('item', 'custcol5', "T"); 
                         actualRecord.commitLineItem('item');
 
+                        
+
                 } else if (qtyGroup > myQtyCompare && myQtyCompare == 0 || myQtyCompare < 0) {
                         var message = "Out Stock";
                          closeItems(internalidItem,itemqty,actualRecord,message);
@@ -820,6 +822,8 @@ function saleOrderWeb(type,record) {
                         actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "Out Stock");
                         actualRecord.setCurrentLineItemValue('item', 'custcol5', "T"); 
                         actualRecord.commitLineItem('item');
+
+                       
 
                 }
 
@@ -870,90 +874,13 @@ function saleOrderWeb(type,record) {
 
            
             }
-           /* try {
-                if (typeItem == 'EndGroup') {
-                    if (qtyGroup <= myQtyCompare) {
-                        try {
-                            var lineTest = actualRecord.findLineItemValue('recmachcustrecord_sales_order', 'custrecord_item', internalidItem);
-                            actualRecord.selectLineItem('recmachcustrecord_sales_order', lineTest);
-                            actualRecord.setCurrentLineItemValue('recmachcustrecord_sales_order', 'custrecord_stock_status', 'In Stock');
-                            actualRecord.commitLineItem('recmachcustrecord_sales_order')
-                        } catch (e) {
-                        }
-                    } else if (qtyGroup > myQtyCompare && myQtyCompare != 0) {
-                        try {
-                            var lineTest = actualRecord.findLineItemValue('recmachcustrecord_sales_order', 'custrecord_item', internalidItem);
-                            actualRecord.selectLineItem('recmachcustrecord_sales_order', lineTest);
-                            actualRecord.setCurrentLineItemValue('recmachcustrecord_sales_order', 'custrecord_stock_status', 'Not Enough Stock');
-                            actualRecord.commitLineItem('recmachcustrecord_sales_order')
-                        } catch (e) {
-                            nlapiLogExecution('ERROR', 'last', e)
-                        }
-                    } else if (myQtyCompare == 0) {
-                        try {
-                            var lineTest = actualRecord.findLineItemValue('recmachcustrecord_sales_order', 'custrecord_item', internalidItem);
-                            actualRecord.selectLineItem('recmachcustrecord_sales_order', lineTest);
-                            actualRecord.setCurrentLineItemValue('recmachcustrecord_sales_order', 'custrecord_stock_status', 'Out of Stock');
-                            actualRecord.commitLineItem('recmachcustrecord_sales_order')
-                        } catch (e) {
-                            nlapiLogExecution('ERROR', 'last', e);
-                        }
-                    }
-                }
-            } catch (e) {
-                nlapiLogExecution('ERROR', 'e', e);
-            }*/
+
         }
+        consumptionOnTaLast(actualRecord);
 
         //****** Status Fields ***********///
         var instock = true;
 
-       /* for (var si = 0; si < actualRecord.getLineItemCount('item'); si++) {
-            var status = actualRecord.getLineItemValue('item', 'custcol_tt_igstatus', si + 1);
-            nlapiLogExecution('debug', 'Status is :' + status, 'yes');
-            if (status.toUpperCase() == 'OUT OF STOCK' || status.toUpperCase() == 'NOT ENOUGH STOCK') {
-                nlapiLogExecution('debug', 'came to if ', 'yes');
-                instock = false;
-                break;
-            }
-        }
-        nlapiLogExecution('debug', 'instock is :' + instock, 'yes');
-        if (instock == true) {
-            actualRecord.setFieldValue('custbody_so_mainstatus', 'Pending Fulfillment');
-            // actualRecord.setFieldValue('custbody_so_substatus', '');
-
-        } else {
-            nlapiLogExecution('debug', 'Status is :' + instock);
-            actualRecord.setFieldValue('custbody_tt_main_status_test', 'Inventory Sourcing Issue');
-            actualRecord.setFieldValue('custbody_so_mainstatus', 'Inventory Sourcing Issue');
-            actualRecord.setFieldValue('custbody_so_substatus', 7);
-
-        }*/
-        //Setting Box - of Quantity.....
-        /*if (soIsAmazon) {
-
-            for (var si = 0; si < actualRecord.getLineItemCount('item'); si++) {
-                var Quantity = actualRecord.getLineItemValue('item', 'quantity', si + 1);
-                var itemPacks = actualRecord.getLineItemText('item', 'units', si + 1);
-                var boxOF = '';
-
-                if (itemPacks.indexOf('C') != -1 && Quantity) {
-                    var qtyis = parseFloat(Quantity).toFixed(0)
-                    if (qtyis != 0) {
-                        var caseNumber = parseInt(Item_saleunit.match(/[0-9]+/));
-                        boxOF = caseNumber + '-' + qtyis;
-                    } else {
-                        boxOF = '';
-                    }
-
-                } else {
-                    boxOF = '';
-                }
-                actualRecord.setLineItemValue('item', 'custcol2', si + 1, boxOF);
-                //actualRecord.commitLineItem('item');
-
-            }
-        }*/
         try {
             if(soIsAmazon && totalAmazonBox > 0){actualRecord.setFieldValue('custbody_so_amazontotalcarton', totalAmazonBox)}            
             nlapiSubmitRecord(actualRecord, true, true);
@@ -1584,4 +1511,94 @@ function addingNewItems(actualRecord,internalidItem,remainder){
  actualRecord.commitLineItem('item');     
 
 }
+
+function consumptionOnTaLast(actualRecord){
+
+
+ var itemqty = actualRecord.getLineItemCount('item');
+ var totalToDiscount = 0;
+ var array = [];
+
+        for (var j = 1; j <= itemqty; j++) {             
+            
+            var myPackage = 0;    
+            var itemIdCompare = actualRecord.getLineItemValue('item', 'item', j);
+            
+            var typeItem = actualRecord.getLineItemValue('item', 'itemtype', j);
+            
+           
+             if(typeItem != 'EndGroup' && typeItem != 'Group'){
+
+                  if (actualRecord.getLineItemValue('item', 'units_display', j)) {
+                  
+                  var itemIndividual = loadItem(actualRecord.getLineItemValue('item', 'item', j));
+                  var totalAvailable = parseFloat(itemIndividual.getFieldValue('custitemavailable_to_use'));
+                  var multiPlo = parseFloat(actualRecord.getLineItemValue('item', 'units_display', j).split('CS')[1]);
+                  var eAches = actualRecord.getLineItemValue('item', 'units_display', j).indexOf('EA')!=-1;
+                  if(eAches){
+                      multiPlo = 1;
+                      var qty = parseFloat(actualRecord.getLineItemValue('item', 'quantity', j));
+                      var totalConsuption = totalAvailable - (qty*multiPlo);
+                      if(totalConsuption > 0){nlapiSubmitField(itemIndividual.getRecordType(),itemIndividual.getFieldValue('internalid'),'custitemavailable_to_use',totalConsuption,true);}
+                      var totalToDiscount = qty*multiPlo;
+                      var name = actualRecord.getLineItemText('item', 'item', j).replace('-IB','').replace('-MB','').replace('-EB','');
+                      var go = false;
+                      for (var i = 0; i < array.length && !go; i++) {
+                          if(name.indexOf(array[i].name)!=-1){
+                             var totalDiscountIn = array[i].total - totalToDiscount;
+
+                             if(totalDiscountIn>0){
+                                nlapiSubmitField('itemgroup',array[i].id,'custitemavailable_to_use',totalDiscountIn,true);
+                             }else{
+                                nlapiSubmitField('itemgroup',array[i].id,'custitemavailable_to_use',0,true);
+                             }
+                             
+                             go=true;
+                          }
+                      };
+
+                  }else{
+                  var qty = parseFloat(actualRecord.getLineItemValue('item', 'quantity', j));
+                  var totalConsuption = totalAvailable - (qty*multiPlo);
+                  totalToDiscount += qty*multiPlo;
+                  }
+                 
+
+                  if(totalConsuption>0){
+                    nlapiSubmitField(itemIndividual.getRecordType(),itemIndividual.getFieldValue('internalid'),'custitemavailable_to_use',totalConsuption,true);
+                }else{
+                    nlapiSubmitField(itemIndividual.getRecordType(),itemIndividual.getFieldValue('internalid'),'custitemavailable_to_use',0,true);
+                }
+
+
+              }       
+
+              }else if(typeItem == 'Group'){
+                var parentRecord = nlapiLoadRecord('itemgroup', actualRecord.getLineItemValue('item', 'item', j));
+                var objectParent = {};
+                objectParent.total = parseFloat(parentRecord.getFieldValue('custitemavailable_to_use'));
+                objectParent.id = actualRecord.getLineItemValue('item', 'item', j);
+                objectParent.name = actualRecord.getLineItemText('item', 'item', j);
+                
+
+              }else if(typeItem == 'EndGroup'){
+
+               objectParent.total = objectParent.total - parseFloat(totalToDiscount);
+               array.push(objectParent);
+               
+               if(totalToDiscount>0){
+                nlapiSubmitField('itemgroup',objectParent.id,'custitemavailable_to_use',objectParent.total,true);
+               }else{
+                nlapiSubmitField('itemgroup',objectParent.id,'custitemavailable_to_use',0,true);
+               }
+               
+               totalToDiscount = 0;
+              }
+            
+                    
+    }
+
+}
+
+
 
