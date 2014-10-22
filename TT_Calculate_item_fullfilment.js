@@ -780,6 +780,9 @@ function saleOrderWeb(type,record) {
                 var internalidItem = actualRecord.getLineItemValue('item', 'item', i);
                 var myItemRecordParent = nlapiLoadRecord('itemgroup', internalidItem);
                 var myQtyCompare = parseFloat(myItemRecordParent.getFieldValue("custitemavailable_to_use"));
+
+                consumptionOnTaGroup(internalidItem,qtyGroup,itemqty,actualRecord);
+
                 if (isNaN(myQtyCompare)) myQtyCompare = 0;
 
                   var preMade = actualRecord.getLineItemText('item', 'custcol_item_type',i);
@@ -792,7 +795,7 @@ function saleOrderWeb(type,record) {
                     if(preMade == 'Pre-Made' && soIsWholsale){completePreMadeItems(internalidItem,itemqty,actualRecord,qtyGroup,message)}
                     if(soIsWholsale && preMade != 'Pre-Made' ){completeinHouse(internalidItem,itemqty,actualRecord,qtyGroup,message)};
                     if(!soIsWholsale){completeStatusOnColumns(internalidItem,itemqty,actualRecord,qtyGroup,message)}
-                   
+                    
                     actualRecord.selectLineItem('item', i);
                     actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "In Stock");
                     actualRecord.setCurrentLineItemValue('item', 'custcol5', "T");                    
@@ -806,7 +809,6 @@ function saleOrderWeb(type,record) {
                         //if(soIsWholsale) {completePreMadeItems(internalidItem,itemqty,actualRecord,qtyGroup,message)};
                         itemWithOutStock(internalidItem,itemqty,actualRecord,qtyGroup,message);
                         
-                        consumptionOnTaGroup(internalidItem,qtyGroup);
                         actualRecord.selectLineItem('item', i);
                         actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "Not Enough Stock");
                         actualRecord.setCurrentLineItemValue('item', 'custcol5', "T"); 
@@ -819,8 +821,6 @@ function saleOrderWeb(type,record) {
                          closeItems(internalidItem,itemqty,actualRecord,message);
                         //if(soIsWholsale) {completePreMadeItems(internalidItem,itemqty,actualRecord,qtyGroup,message)};
                         itemWithOutStock(internalidItem,itemqty,actualRecord,qtyGroup,message);
-                        
-                        consumptionOnTaGroup(internalidItem,qtyGroup);
 
                         actualRecord.selectLineItem('item', i);
                         actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "Out Stock");
@@ -1530,61 +1530,58 @@ function addingNewItems(actualRecord,internalidItem,remainder){
 
 }
 
-function consumptionOnTaGroup(miId,myQty){
+function consumptionOnTaGroup(internalidItem,qtyGroup,itemqty,actualRecord){
 
-                var parentRecord = nlapiLoadRecord('itemgroup', miId);               
-                var total = parseFloat(parentRecord.getFieldValue('custitemavailable_to_use'));
-                var totalConsuption = total - myQty;
+
+ var flagSet = true;
+ var parentFind = false;
+ var totalToCompare = 0;
+ var finish = true;
+ var retornoFor = false;
+ var myPackage = 0;
+ var arrayItemsToCompare = [];
+ var allNotElegible = true;
+
+        for (var j = 1; j <= itemqty  && !retornoFor; j++) {             
+            
+            var myPackage = 0;    
+            var itemIdCompare = actualRecord.getLineItemValue('item', 'item', j);
+            var typeItem = actualRecord.getLineItemValue('item', 'itemtype', j);
+            
+            if(internalidItem == itemIdCompare ){
+
+               var parentRecord = nlapiLoadRecord('itemgroup', actualRecord.getLineItemValue('item', 'item', j));
+               parentFind = true;
+               var lineNumParent = j; 
+               var total = parseFloat(parentRecord.getFieldValue('custitemavailable_to_use'));
+               var totalConsuption = total - qtyGroup;
+               nlapiSubmitField(parentRecord.getRecordType(),actualRecord.getLineItemValue('item', 'item', j),'custitemavailable_to_use',totalConsuption,true);
+               
+                  
+             }   
+              if (actualRecord.getLineItemValue('item', 'units_display', j) && parentFind) {
+                  
+                  var itemIndividual = loadItem(actualRecord.getLineItemValue('item', 'item', j));
+
+                  var total = parseFloat(itemIndividual.getFieldValue('custitemavailable_to_use'));
+                  var totalConsuption = total - qtyGroup;
+                
                 if(totalConsuption>0){
-                   nlapiSubmitField('itemgroup', miId,'custitemavailable_to_use',totalConsuption,true);
+                   nlapiSubmitField(itemIndividual.getRecordType(),actualRecord.getLineItemValue('item', 'item', j),'custitemavailable_to_use',totalConsuption,true);
                
                 }else{
                       nlapiSubmitField('itemgroup', miId,'custitemavailable_to_use',0,true);
                
                 }
+                 
+              }else if(typeItem == 'EndGroup' && !finish){
+                       retornoFor = true;
+
+
+              }
+                    
+    }
                
-
-}
-
-function consumptionOnTaOtherItemsWithOutRemainder(arrayItemsToCompare){
-
-    for (var i = 0; i < arrayItemsToCompare.length; i++) {
-         
-         itemId = arrayItemsToCompare[i].internalid;
-         filter[0] = new nlobjSearchFilter('internalid', null, 'is', itemId);
-         var searchResult = new nlapiSearchRecord(null, 109, filter, null);
-          
-         nlapiSubmitField(searchResult[0].getRecordType(),searchResult[0].getId(),'custitemavailable_to_use',arrayItemsToCompare[i].available,'doSourcing');  
- 
-
-    };
-
-
-}
-
-function consumptionOnTaOtherItemsWithRemainder(arrayItemsToCompare,remainder,typeRemainder){
-var filter = [];
-var itemId = '';
-for (var i = 0; i < arrayItemsToCompare.length; i++) {
-         if(arrayItemsToCompare[i].name.indexOf(typeRemainder)!=-1){
-         itemId = arrayItemsToCompare[i].internalid;
-         filter[0] = new nlobjSearchFilter('internalid', null, 'is', itemId);
-         var searchResult = new nlapiSearchRecord(null, 109, filter, null);
-         var discount = arrayItemsToCompare[i].available - remainder;
-         nlapiSubmitField(searchResult[0].getRecordType(),searchResult[0].getId(),'custitemavailable_to_use',discount,true);  
- 
-
-         }else{
-         itemId = arrayItemsToCompare[i].internalid;
-         filter[0] = new nlobjSearchFilter('internalid', null, 'is', itemId);
-         var searchResult = new nlapiSearchRecord(null, 109, filter, null);
-         var discount = arrayItemsToCompare[i].available;
-         nlapiSubmitField(searchResult[0].getRecordType(),searchResult[0].getId(),'custitemavailable_to_use',discount,true);  
- 
-
-         }
-         
-    };
 
 }
 
