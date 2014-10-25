@@ -102,7 +102,7 @@ function saleOrderWeb(type,record) {
                     thisParntItem.MBID = parentRecord.getLineItemValue('member', 'item', 1);
                     thisParntItem.IBID = parentRecord.getLineItemValue('member', 'item', 2);
                     thisParntItem.EBID = parentRecord.getLineItemValue('member', 'item', 3);                    
-                    var myQtyCompareParent = parseFloat(parentRecord.getFieldValue("custitemavailable_to_use"));
+                    var myQtyCompareParent = parseFloat(parentRecord.getFieldValue("custitem_total_available"));
                     if (isNaN(myQtyCompare)) myQtyCompare = 0;
                     if(myQty <= myQtyCompareParent && soIsAmazon){
                         amazonflagForDiscount = true;
@@ -145,7 +145,7 @@ function saleOrderWeb(type,record) {
                         var itemObj = new Object();
                         var name = searchResult[0].getValue('name');
                         var internalid = searchResult[0].getValue('internalid');
-                        var quantity = searchResult[0].getValue('custitemavailable_to_use');
+                        var quantity = searchResult[0].getValue('custitem_total_available');
                         var ecommerce = searchResult[0].getValue('custitem_tt_ecombox');
                         var ecommerceShippable = searchResult[0].getValue('custitem_tt_ecomship');
                         var amazonship = searchResult[0].getValue('custitem_tt_amazonship');
@@ -779,7 +779,7 @@ function saleOrderWeb(type,record) {
                 var qtyGroup = parseFloat(actualRecord.getLineItemValue('item', 'quantity', i));
                 var internalidItem = actualRecord.getLineItemValue('item', 'item', i);
                 var myItemRecordParent = nlapiLoadRecord('itemgroup', internalidItem);
-                var myQtyCompare = parseFloat(myItemRecordParent.getFieldValue("custitemavailable_to_use"));
+                var myQtyCompare = parseFloat(myItemRecordParent.getFieldValue("custitem_total_available"));
 
                 consumptionOnTaGroup(internalidItem,qtyGroup,itemqty,actualRecord);
 
@@ -836,7 +836,7 @@ function saleOrderWeb(type,record) {
                 var myIdIndividual = actualRecord.getLineItemValue('item', 'item', i);
                 var itemIndividual = loadItem(actualRecord.getLineItemValue('item', 'item', i));  
                 var myItemElegible = itemIndividual.getFieldTexts('custitem2').indexOf(actualRecord.getFieldText('department'))!=-1;
-                var quantityavailableInItem = parseFloat(itemIndividual.getFieldValue('custitemavailable_to_use'));          
+                var quantityavailableInItem = parseFloat(itemIndividual.getFieldValue('custitem_total_available'));          
                 var qtyInMyItem = parseFloat(actualRecord.getLineItemValue('item', 'quantity', i));
                 var isclosedItem = actualRecord.getLineItemValue('item', 'custcol5', i); 
 
@@ -1037,7 +1037,7 @@ function completePreMadeItems(internalidItem,itemqty,actualRecord,qtyGroup,messa
                   var qty = parseFloat(actualRecord.getLineItemValue('item', 'quantity', j));
                   var myMessage = actualRecord.getLineItemValue('item', 'custcol_tt_igstatus', j);
                   var itemRecord = loadItem(actualRecord.getLineItemValue('item', 'item', j));
-                  var stockAvailableOnItem = parseFloat(itemRecord.getFieldValue('custitemavailable_to_use'));
+                  var stockAvailableOnItem = parseFloat(itemRecord.getFieldValue('custitem_total_available'));
                   var myItemObject = {};
                   myItemObject.stock = stockAvailableOnItem;
                   myItemObject.lineNum = j;
@@ -1262,7 +1262,7 @@ function completeinHouse(internalidItem,itemqty,actualRecord,qtyGroup,message){
                      
                          var message = actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus',j);
                            var item = loadItem(actualRecord.getLineItemValue('item', 'item', j))
-                            var totalAvailableOnItem = item.getFieldValue('custitemavailable_to_use');
+                            var totalAvailableOnItem = item.getFieldValue('custitem_total_available');
                             var remaindertoNeed = qtyGroup - totalToCompare;
                             if(remaindertoNeed > 0){
                                 if(totalAvailableOnItem >= 0){
@@ -1553,9 +1553,9 @@ function consumptionOnTaGroup(internalidItem,qtyGroup,itemqty,actualRecord){
                var parentRecord = nlapiLoadRecord('itemgroup', actualRecord.getLineItemValue('item', 'item', j));
                parentFind = true;
                var lineNumParent = j; 
-               var total = parseFloat(parentRecord.getFieldValue('custitemavailable_to_use'));
+               var total = parseFloat(parentRecord.getFieldValue('custitem_total_available'));
                var totalConsuption = total - qtyGroup;
-               nlapiSubmitField(parentRecord.getRecordType(),actualRecord.getLineItemValue('item', 'item', j),'custitemavailable_to_use',totalConsuption,true);
+               nlapiSubmitField(parentRecord.getRecordType(),actualRecord.getLineItemValue('item', 'item', j),'custitem_total_available',totalConsuption,true);
                
                   
              }   
@@ -1563,14 +1563,14 @@ function consumptionOnTaGroup(internalidItem,qtyGroup,itemqty,actualRecord){
                   
                   var itemIndividual = loadItem(actualRecord.getLineItemValue('item', 'item', j));
 
-                  var total = parseFloat(itemIndividual.getFieldValue('custitemavailable_to_use'));
+                  var total = parseFloat(itemIndividual.getFieldValue('custitem_total_available'));
                   var totalConsuption = total - qtyGroup;
                 
                 if(totalConsuption>0){
-                   nlapiSubmitField(itemIndividual.getRecordType(),actualRecord.getLineItemValue('item', 'item', j),'custitemavailable_to_use',totalConsuption,true);
+                   nlapiSubmitField(itemIndividual.getRecordType(),actualRecord.getLineItemValue('item', 'item', j),'custitem_total_available',totalConsuption,true);
                
                 }else{
-                      nlapiSubmitField('itemgroup', miId,'custitemavailable_to_use',0,true);
+                      nlapiSubmitField('itemgroup', miId,'custitem_total_available',0,true);
                
                 }
                  
