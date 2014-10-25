@@ -781,7 +781,7 @@ function saleOrderWeb(type,record) {
                 var myItemRecordParent = nlapiLoadRecord('itemgroup', internalidItem);
                 var myQtyCompare = parseFloat(myItemRecordParent.getFieldValue("custitem_total_available"));
 
-                consumptionOnTaGroup(internalidItem,qtyGroup,itemqty,actualRecord);
+                
 
                 if (isNaN(myQtyCompare)) myQtyCompare = 0;
 
@@ -800,6 +800,7 @@ function saleOrderWeb(type,record) {
                     actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "In Stock");
                     actualRecord.setCurrentLineItemValue('item', 'custcol5', "T");                    
                     actualRecord.commitLineItem('item');
+                    consumptionOnTaGroup(internalidItem,qtyGroup,itemqty,actualRecord);
 
                     
                 } else if (qtyGroup > myQtyCompare && myQtyCompare > 0) {
@@ -813,6 +814,7 @@ function saleOrderWeb(type,record) {
                         actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "Not Enough Stock");
                         actualRecord.setCurrentLineItemValue('item', 'custcol5', "T"); 
                         actualRecord.commitLineItem('item');
+                        consumptionOnTaGroup(internalidItem,qtyGroup,itemqty,actualRecord);
 
                         
 
@@ -826,6 +828,7 @@ function saleOrderWeb(type,record) {
                         actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "Out Stock");
                         actualRecord.setCurrentLineItemValue('item', 'custcol5', "T"); 
                         actualRecord.commitLineItem('item');
+                        consumptionOnTaGroup(internalidItem,qtyGroup,itemqty,actualRecord);
 
                        
 
@@ -1135,7 +1138,6 @@ function completePreMadeItems(internalidItem,itemqty,actualRecord,qtyGroup,messa
                   if(lost > 0){
                      for (var i = 1; i < arrayItemsToCompare.length; i++) {
                          if(arrayItemsToCompare[i].available > 0){
-                            consumptionOnTaOtherItemsWithRemainder(arrayItemsToCompare,remainder,arrayItemsToCompare[i].name)
                             addingNewItems(actualRecord,arrayItemsToCompare[i].internalid,arrayItemsToCompare[i].available)
                             lost = lost - arrayItemsToCompare[i].available;
                          }
@@ -1152,7 +1154,7 @@ function completePreMadeItems(internalidItem,itemqty,actualRecord,qtyGroup,messa
                    if(lost > 0){
                      for (var i = 1; i < arrayItemsToCompare.length; i++) {
                          if(arrayItemsToCompare[i].available > 0){
-                            consumptionOnTaOtherItemsWithRemainder(arrayItemsToCompare,remainder,arrayItemsToCompare[i].name)
+                            
                             addingNewItems(actualRecord,arrayItemsToCompare[i].internalid,arrayItemsToCompare[i].available)
                             lost = lost - arrayItemsToCompare[i].available;
                          }
@@ -1178,12 +1180,7 @@ function completePreMadeItems(internalidItem,itemqty,actualRecord,qtyGroup,messa
                 setColumnStatusAdding(actualRecord,lineNumParent,addingitems);
             }
      
-          if(remainder == 0){
-            consumptionOnTaOtherItemsWithOutRemainder(arrayItemsToCompare);
-          }else{
-            var typeRemainder = 'MB'
-            consumptionOnTaOtherItemsWithRemainder(arrayItemsToCompare,remainder,typeRemainder)
-          }
+      
 
 }
 
@@ -1570,7 +1567,7 @@ function consumptionOnTaGroup(internalidItem,qtyGroup,itemqty,actualRecord){
                    nlapiSubmitField(itemIndividual.getRecordType(),actualRecord.getLineItemValue('item', 'item', j),'custitem_total_available',totalConsuption,true);
                
                 }else{
-                      nlapiSubmitField('itemgroup', miId,'custitem_total_available',0,true);
+                      nlapiSubmitField(itemIndividual.getRecordType(),actualRecord.getLineItemValue('item', 'item', j),'custitem_total_available',0,true);
                
                 }
                  
