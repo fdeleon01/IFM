@@ -891,6 +891,9 @@ function saleOrderWeb(type,record) {
 
         try {
             if(soIsAmazon && totalAmazonBox > 0){actualRecord.setFieldValue('custbody_so_amazontotalcarton', totalAmazonBox)}            
+           
+            var isOk = startSchedule();
+           
             nlapiSubmitRecord(actualRecord, true, true);
             
         } catch (e) {
@@ -1579,6 +1582,33 @@ function consumptionOnTaGroup(internalidItem,qtyGroup,itemqty,actualRecord){
                     
     }
                
+
+}
+
+function startSchedule(){
+var finish = false;
+var context = nlapiGetContext();
+var strStartDate = context.getSetting('SCRIPT', 'custscriptstartdate');
+
+var subsidiary = context.getSetting('SCRIPT', 'custscriptsubsidiary');
+var startDate = new Date(strStartDate);
+
+//schedule the script execution and define script parameter values
+var startDate = new Date();
+var params = {
+    custscriptstartdate: startDate.toUTCString(),
+}
+
+//so that the scheduled script API knows which script to run, set the custom ID
+//specified on the Script record. Then set the custom ID on the Script Deployment
+var status = nlapiScheduleScript('customscript241','customdeploy3', params);
+if ( status == 'QUEUED' ){
+   finish = true;
+
+}
+            
+return finish;
+
 
 }
 
