@@ -194,11 +194,9 @@ function saleOrderWeb(type,record) {
                         itemObj.upcprint = upcprint;
 
 
-                        if (allowGeneralItem == false) {
-                            myQty = parseFloat(myQty);
-                        } else {
-                            myQty = myQtyCsrView;
-                        }
+                        
+                        myQty = parseFloat(myQty);
+                      
 
                         
                         var box = actualRecord.getLineItemValue('item', 'units_display', j + 1);
@@ -295,12 +293,9 @@ function saleOrderWeb(type,record) {
                         if (!isWhosale && soIsWholsale && inHouse != 1) {//caso que no hay stock de EB ni MB, pregunto por el length por que ya se setearon todos los valores, entonces no tengo stock de nada y veo si meto un ib en el stock, detecte el problema de que si la orden no es wholsale no entra preguntar en este caso.
                             nlapiLogExecution('debug', 'enter to ', 'case 1');
 
-                            if (allowGeneralItem == false) {
-                                actualRecord.setCurrentLineItemValue('item', 'quantity', 0);
-                                stockAvailavle = 0;
-                            } else {
-                                actualRecord.setCurrentLineItemValue('item', 'quantity', myQtyCsrView);
-                            }
+                         
+                            actualRecord.setCurrentLineItemValue('item', 'quantity', 0);
+                              
                             actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "Not Eligible");
                             actualRecord.setCurrentLineItemValue('item', 'custcol_tt_qtyperbox', numberBigger);
                             actualRecord.setCurrentLineItemValue('item', 'custcol2', '');
@@ -351,12 +346,8 @@ function saleOrderWeb(type,record) {
                                         myPackage = Math.floor(myQty / numberBigger);
                                         myQty = myQty - Math.floor(myPackage * numberBigger);
                                 }
-                                //actualRecord.setCurrentLineItemValue('item','quantity',myPackage);
-                                if (allowGeneralItem == false) {
-                                    actualRecord.setCurrentLineItemValue('item', 'quantity', myPackage);
-                                } else {
-                                    actualRecord.setCurrentLineItemValue('item', 'quantity', myQtyCsrView);
-                                }
+                                actualRecord.setCurrentLineItemValue('item','quantity',myPackage);
+                               
                                 nlapiLogExecution('debug', 'InStock Here 3', 'mypackage :' + myPackage + ',myQty :' + myQty);
                                 actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "In Stock");
                                 actualRecord.setCurrentLineItemValue('item', 'custcolupcrinting', myUpcprint);
@@ -390,12 +381,8 @@ function saleOrderWeb(type,record) {
                                     myPackage = Math.floor(stockAvailavle / numberBigger);
                                     myQty = myQty - (myPackage * numberBigger)
                                 }
-                                // actualRecord.setCurrentLineItemValue('item','quantity',myPackage);
-                                if (allowGeneralItem == false) {
-                                    actualRecord.setCurrentLineItemValue('item', 'quantity', myPackage);
-                                } else {
-                                    actualRecord.setCurrentLineItemValue('item', 'quantity', myQtyCsrView);
-                                }
+                                 actualRecord.setCurrentLineItemValue('item','quantity',myPackage);
+                               
                                 actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "Not Enough Stock");
                                 actualRecord.setCurrentLineItemValue('item', 'custcolupcrinting', myUpcprint);
                                 actualRecord.setCurrentLineItemValue('item', 'custcol_tt_qtyperbox', numberBigger);
@@ -459,12 +446,8 @@ function saleOrderWeb(type,record) {
                                 }
 
                                 setingItem = true;
-                                // actualRecord.setCurrentLineItemValue('item','quantity',myPackage);
-                                if (allowGeneralItem == false) {
-                                    actualRecord.setCurrentLineItemValue('item', 'quantity', myPackage);
-                                } else {
-                                    actualRecord.setCurrentLineItemValue('item', 'quantity', myQtyCsrView);
-                                }
+                                 actualRecord.setCurrentLineItemValue('item','quantity',myPackage);
+                               
                                 actualRecord.setCurrentLineItemValue('item', 'custcolupcrinting', myUpcprint);
                                 actualRecord.setCurrentLineItemValue('item', 'custcol_tt_qtyperbox', numberBigger);
                                 actualRecord.commitLineItem('item');
@@ -472,11 +455,9 @@ function saleOrderWeb(type,record) {
 
                             } else if (myQty < numberBigger && stockAvailavle > myQty) {
                                 nlapiLogExecution('debug', 'Came to @2', 'myQty :' + myQty + ',numberBigger :' + numberBigger + ',stockAvailavle:' + stockAvailavle + ',Internal Id Item:' + internalid);
-                                if (allowGeneralItem == false) {
+                                
                                     actualRecord.setCurrentLineItemValue('item', 'quantity', 0);
-                                } else {
-                                    actualRecord.setCurrentLineItemValue('item', 'quantity', myQtyCsrView);
-                                }
+                                
                                 actualRecord.setCurrentLineItemValue('item', 'custcol_tt_qtyperbox', numberBigger);
                                 nlapiLogExecution('debug', 'InStock Here 5', 'mypackage :' + myPackage + ',myQty :' + myQty);
                                 actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "In Stock");
@@ -485,11 +466,9 @@ function saleOrderWeb(type,record) {
                                 counterSet++;
                             } else if (myQty < numberBigger && stockAvailavle < myQty) {
                                 nlapiLogExecution('debug', 'Came to @3', 'myQty :' + myQty + ',numberBigger :' + numberBigger + ',stockAvailavle:' + stockAvailavle + ',Internal Id Item:' + internalid);
-                                if (allowGeneralItem == false) {
-                                    actualRecord.setCurrentLineItemValue('item', 'quantity', 0);
-                                } else {
-                                    actualRecord.setCurrentLineItemValue('item', 'quantity', myQtyCsrView);
-                                }
+                                
+                                actualRecord.setCurrentLineItemValue('item', 'quantity', 0);
+                                
                                 actualRecord.setCurrentLineItemValue('item', 'custcol_tt_qtyperbox', numberBigger);
                                 actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "Out of Stock");
                                 actualRecord.setCurrentLineItemValue('item', 'custcol2', '');
@@ -506,12 +485,8 @@ function saleOrderWeb(type,record) {
                                 myPackage++;
                                
                             }
-                            // actualRecord.setCurrentLineItemValue('item','quantity',myPackage);
-                            if (allowGeneralItem == false) {
-                                actualRecord.setCurrentLineItemValue('item', 'quantity', myPackage);
-                            } else {
-                                actualRecord.setCurrentLineItemValue('item', 'quantity', myQtyCsrView);
-                            }
+                            actualRecord.setCurrentLineItemValue('item','quantity',myPackage);
+                         
                             actualRecord.setCurrentLineItemValue('item', 'custcol_tt_qtyperbox', numberBigger);
                             actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "Not Enough Stock");
                             actualRecord.setCurrentLineItemValue('item', 'custcol2', '');
@@ -580,12 +555,8 @@ function saleOrderWeb(type,record) {
 
                                     actualRecord.setCurrentLineItemValue('item', 'custcol2', '');
                                 } 
-                                //  actualRecord.setCurrentLineItemValue('item','quantity',myPackage);
-                                if (allowGeneralItem == false) {
-                                    actualRecord.setCurrentLineItemValue('item', 'quantity', myPackage);
-                                } else {
-                                    actualRecord.setCurrentLineItemValue('item', 'quantity', myQtyCsrView);
-                                }
+                                  actualRecord.setCurrentLineItemValue('item','quantity',myPackage);
+                             
                                 actualRecord.setCurrentLineItemValue('item', 'custcolupcrinting', myUpcprint);
                                 actualRecord.setCurrentLineItemValue('item', 'custcol_tt_qtyperbox', numberBigger);
                                 if (soIsAmazon && amazonflagForDiscount) {
@@ -617,9 +588,7 @@ function saleOrderWeb(type,record) {
                                     nlapiLogExecution('debug', 'Came to  @4', 'stockAvailavle :' + stockAvailavle);
                                     //if (allowGeneralItem ==false) {
                                     actualRecord.setCurrentLineItemValue('item', 'quantity', 0);
-                                    /*}else{
-                                     actualRecord.setCurrentLineItemValue('item','quantity',myQtyCsrView);
-                                     }*/
+                                 
 
                                     actualRecord.setCurrentLineItemValue('item', 'custcol2', '');
 
@@ -667,23 +636,17 @@ function saleOrderWeb(type,record) {
                                         }
                                     }
 
-                                    //actualRecord.setCurrentLineItemValue('item','quantity',myPackage);
-                                    if (allowGeneralItem == false) {
-                                        actualRecord.setCurrentLineItemValue('item', 'quantity', myPackage);
-                                    } else {
-                                        actualRecord.setCurrentLineItemValue('item', 'quantity', myQtyCsrView);
-                                    }
+                                    actualRecord.setCurrentLineItemValue('item','quantity',myPackage);
+                                    
                                     actualRecord.setCurrentLineItemValue('item', 'custcol_tt_qtyperbox', numberBigger);
                                     actualRecord.commitLineItem('item');
                                 }
                             } else if (stockAvailavle < myQty) {
                                 if (stockAvailavle == 0 && setingInEa == false) {
                                     nlapiLogExecution('debug', 'Came to @5', 'stockAvailavle :' + stockAvailavle);
-                                    if (allowGeneralItem == false) {
+                                    
                                         actualRecord.setCurrentLineItemValue('item', 'quantity', 0);
-                                    } else {
-                                        actualRecord.setCurrentLineItemValue('item', 'quantity', myQtyCsrView);
-                                    }                      
+                                                    
 
                                     actualRecord.setCurrentLineItemValue('item', 'custcol2', '');
                                     actualRecord.setCurrentLineItemValue('item', 'custcolupcrinting', myUpcprint);
@@ -705,12 +668,8 @@ function saleOrderWeb(type,record) {
                                     }
                                     actualRecord.setCurrentLineItemValue('item', 'custcol2', '');
 
-                                    //actualRecord.setCurrentLineItemValue('item','quantity',myPackage);
-                                    if (allowGeneralItem == false) {
-                                        actualRecord.setCurrentLineItemValue('item', 'quantity', myPackage);
-                                    } else {
-                                        actualRecord.setCurrentLineItemValue('item', 'quantity', myQtyCsrView);
-                                    }
+                                    actualRecord.setCurrentLineItemValue('item','quantity',myPackage);
+                                  
                                     actualRecord.setCurrentLineItemValue('item', 'custcol_tt_qtyperbox', numberBigger);
                                     actualRecord.commitLineItem('item');
                                 }
@@ -892,8 +851,11 @@ function saleOrderWeb(type,record) {
         try {
             if(soIsAmazon && totalAmazonBox > 0){actualRecord.setFieldValue('custbody_so_amazontotalcarton', totalAmazonBox)}            
            
-            var isOk = startSchedule();
            
+
+    
+            
+            nlapiLogExecution('ERROR', 'start schedule: ', isOk);
             nlapiSubmitRecord(actualRecord, true, true);
             
         } catch (e) {
@@ -1468,7 +1430,7 @@ for (var i = 0; i < arrayItemsIndividuales.length && retorno; i++) {
        qty = arrayItemsIndividuales[i].qty;
     }
 };
-nlapiLogExecution('ERROR','individual Stock',qty)
+
 return qty;
 
 }
@@ -1585,32 +1547,7 @@ function consumptionOnTaGroup(internalidItem,qtyGroup,itemqty,actualRecord){
 
 }
 
-function startSchedule(){
-var finish = false;
-var context = nlapiGetContext();
-var strStartDate = context.getSetting('SCRIPT', 'custscriptstartdate');
 
-var subsidiary = context.getSetting('SCRIPT', 'custscriptsubsidiary');
-var startDate = new Date(strStartDate);
-
-//schedule the script execution and define script parameter values
-var startDate = new Date();
-var params = {
-    custscriptstartdate: startDate.toUTCString(),
-}
-
-//so that the scheduled script API knows which script to run, set the custom ID
-//specified on the Script record. Then set the custom ID on the Script Deployment
-var status = nlapiScheduleScript('customscript241','customdeploy3', params);
-if ( status == 'QUEUED' ){
-   finish = true;
-
-}
-            
-return finish;
-
-
-}
 
 
 
