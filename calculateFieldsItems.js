@@ -126,6 +126,18 @@ try{
       }catch(e){
         var itemQty=0;
       }
+      var calculationAvailable = true;
+      for (var pos = 1; pos <= itemQty && calculationAvailable; pos++) {
+
+           var internalidComponent = itemAssembly.getLineItemValue('member', 'item', pos);
+           var itemMember = loadItem(internalidComponent); 
+           var availableToDiscount = itemMember.getFieldValue('custitem_ignore_calculation');
+           if(availableToDiscount == 'T')calculationAvailable = false;
+      }
+      
+
+      if(calculationAvailable){    
+
       for (var z = 1; z <= itemQty; z++) {
         
 
@@ -135,6 +147,7 @@ try{
         var qtyNecesary = itemAssembly.getLineItemValue('member', 'quantity', z);
         var totaltoUpdate = qtyNecesary * backOrder;
         var itemMember = loadItem(internalidComponent); 
+        var availableToDiscount = itemMember.getFieldValue('custitem_ignore_calculation');
 
         var objectGeneric =  setInventoryItems(internalidComponent,itemMember);
         var atuInMember = parseFloat(objectGeneric.availableToUse);
@@ -194,14 +207,15 @@ try{
 
         nlapiSubmitField(searchResult[0].getRecordType(),searchResult[0].getId(),'custitem4',timeNow,true); 
         nlapiSubmitField(searchResult[0].getRecordType(),searchResult[0].getId(),'custitem_total_available',totalAvailable,true); 
-        nlapiSubmitField(searchResult[0].getRecordType(),searchResult[0].getId(),'custitem_pending_work_order',backOrder,true); 
+        nlapiSubmitField(searchResult[0].getRecordType(),searchResult[0].getId(),'custitem_pending_work_order',0,true); 
         nlapiSubmitField(searchResult[0].getRecordType(),searchResult[0].getId(),'custitem_available_to_make',atm,true); 
         nlapiSubmitField(searchResult[0].getRecordType(),searchResult[0].getId(),'custitem_available_to_use',atu,true); 
 
 
        
-      }
-      else{
+       }
+    }
+      /*else{
         
         var itemAssembly = loadItem(internalId);
 
@@ -215,14 +229,14 @@ try{
 
         nlapiSubmitField(itemAssembly.getRecordType(),internalId,'custitem4',timeNow,true); 
        // nlapiSubmitField(searchResult[0].getRecordType(),searchResult[0].getId(),'custitem_total_available',totalAvailable,true); 
-        nlapiSubmitField(itemAssembly.getRecordType(),internalId,'custitem_total_available',totalAvailable,true); 
+        nlapiSubmitField(itemAssembly.getRecordType(),internalId,'custitem_total_available',0,true); 
         nlapiSubmitField(itemAssembly.getRecordType(),internalId,'custitem_available_to_make',atm,true); 
         nlapiSubmitField(itemAssembly.getRecordType(),internalId,'custitem_available_to_use',atu,true); 
         nlapiSubmitField(itemAssembly.getRecordType(),internalId,'custitem_pending_work_order',0,true); 
 
 
 
-      }
+      }*/
      
 
     }
