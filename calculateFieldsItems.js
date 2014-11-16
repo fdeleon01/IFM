@@ -68,7 +68,7 @@ try{
 
      if(typeItem == 'Group'){
        filterGroups.push(new nlobjSearchFilter('internalid', null, 'is', actualRecord.getLineItemValue('item', 'item', i)));
-     }else if(typeItem != 'EndGroup' && typeItem != 'Group'){
+     }else if(typeItem != 'EndGroup' && typeItem != 'Group' && typeItem != 'InvtPart'){
       filterInventory.push(new nlobjSearchFilter('internalid', null, 'is', actualRecord.getLineItemValue('item', 'item', i)));
      }
      
