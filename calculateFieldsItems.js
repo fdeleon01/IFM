@@ -254,7 +254,7 @@ for (var i = 1; i < counterItems; i++) {
 
     }
 };
-setTaInGroupitems(timeNow,filterGroups);
+setTaInGroupitems(timeNow,filterGroups,itemsIgnored);
 
 
 
@@ -336,7 +336,7 @@ return object;
 
 }
 
-function setTaInGroupitems(timeNow,filterGroups){
+function setTaInGroupitems(timeNow,filterGroups,itemsIgnored){
 
 nlapiLogExecution('ERROR', 'start: ','setTaInGroupitems function');
 try{
@@ -346,17 +346,18 @@ for (var i = 0; i < filterGroups.length; i++) {
 
 
 var searchResult = new nlapiSearchRecord(null, 223,filterGroups[i],null);
+var columnsSearch = searchResult[0].getAllColumns();
+var nameParent = searchResult[0].getValue(columnsSearch[0]);
 
 
-if(searchResult.length > 0){
+if(searchResult.length > 0 && itemsIgnored.indexOf(nameParent) == -1){
 
 
       var totalAvailableToUpdate = 0;
 
-      var columnsSearch = searchResult[0].getAllColumns();
       var internalId = searchResult[0].getValue(columnsSearch[1]); 
       
-      var nameParent = searchResult[0].getValue(columnsSearch[0]);
+      
       var groupItem = loadItem(internalId);
       try{
         var itemType = groupItem.getFieldText('custitem_itemtype');
