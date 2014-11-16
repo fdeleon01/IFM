@@ -57,23 +57,45 @@ try{
   var actualRecordId=nlapiGetRecordId();
   var filterGroups = [];
 
+  var itemsIgnored = [];
 
   nlapiLogExecution('ERROR', 'error','start');
   var actualRecord = nlapiLoadRecord('salesorder', actualRecordId, {recordmode: 'dynamic'});
   var counterItems = actualRecord.getLineItemCount('item');
   var filterInventory = [];
 
-  for (var i = 1; i < counterItems; i++) {
+for (var i = 1; i < counterItems; i++) {
      var typeItem = actualRecord.getLineItemValue('item', 'itemtype', i);
 
      if(typeItem == 'Group'){
        filterGroups.push(new nlobjSearchFilter('internalid', null, 'is', actualRecord.getLineItemValue('item', 'item', i)));
      }else if(typeItem != 'EndGroup' && typeItem != 'Group' && typeItem != 'InvtPart'){
       filterInventory.push(new nlobjSearchFilter('internalid', null, 'is', actualRecord.getLineItemValue('item', 'item', i)));
-     }
-     
+      
+       
+  
+      var itemCalculate = loadItem(actualRecord.getLineItemValue('item', 'item', i));   
+
+      var nameIgnored = itemCalculate.getFieldValue('itemid');   
+      var availableToDiscount = itemCalculate.getFieldValue('custitem_ignore_calculation');
+
+      if(availableToDiscount == 'T'){
+  
+            try{
+              itemsIgnored.push(nameIgnored.split('-')[0])
+            }catch(e){
+
+            }
+            
+          }  
+      
+      }
+
+    
 
   };
+    
+     
     
      
      
@@ -105,7 +127,7 @@ try{
       filter2[0] = new nlobjSearchFilter('item', null, 'is', internalId);
 
       var newSearchResult = new nlapiSearchRecord(null, 144, filter2, null);
-      if(newSearchResult.length>0){
+      if(newSearchResult.length>0 && itemsIgnored.indexOf(nameParent.split('-')[0]) == -1){
         var backOrder = 0;
         
         for (var x = 0; x < newSearchResult.length; x++) {
@@ -126,20 +148,10 @@ try{
       }catch(e){
         var itemQty=0;
       }
-      var calculationAvailable = true;
-      for (var pos = 1; pos <= itemQty && calculationAvailable; pos++) {
-
-           var internalidComponent = itemAssembly.getLineItemValue('member', 'item', pos);
-           var itemMember = loadItem(internalidComponent); 
-           var availableToDiscount = itemMember.getFieldValue('custitem_ignore_calculation');
-           if(availableToDiscount == 'T')calculationAvailable = false;
-      }
+      
       
 
-      if(calculationAvailable){    
-
-      for (var z = 1; z <= itemQty; z++) {
-        
+      for (var z = 1; z <= itemQty; z++) {          
 
         var internalidComponent = itemAssembly.getLineItemValue('member', 'item', z);
        
@@ -213,8 +225,9 @@ try{
 
 
        
-       }
-    }
+       
+      }
+  
       /*else{
         
         var itemAssembly = loadItem(internalId);
