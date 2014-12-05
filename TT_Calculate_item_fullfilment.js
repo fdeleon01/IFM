@@ -45,7 +45,7 @@ function saleOrderWeb(type,record) {
         var aux = 0;
         var valueInAmazon = 0;        
         actualRecord.setFieldValue('custbody10','F');
-        start();
+        
 
          if(department.indexOf(':')!=-1){
            
@@ -825,19 +825,20 @@ function saleOrderWeb(type,record) {
             }
             if (typeItem != 'Group' && typeItem != 'EndGroup') {
                 var myIdIndividual = actualRecord.getLineItemValue('item', 'item', i);
-                var itemIndividual = loadItem(actualRecord.getLineItemValue('item', 'item', i));                      
-                var myItemElegible = checkIsElegible(actualRecord.getFieldText('department'),itemIndividual.getFieldTexts('custitem2')) 
+                var itemIndividual = loadItem(actualRecord.getLineItemValue('item', 'item', i));  
+                var myItemElegible = itemIndividual.getFieldTexts('custitem2').indexOf(actualRecord.getFieldText('department'))!=-1;
                 var quantityavailableInItem = parseFloat(itemIndividual.getFieldValue('custitem_total_available'));          
                 var qtyInMyItem = parseFloat(actualRecord.getLineItemValue('item', 'quantity', i));
                 var isclosedItem = actualRecord.getLineItemValue('item', 'custcol5', i); 
 
+            
 
                 if(!myItemElegible && qtyGroup <= myQtyCompare && isclosedItem == 'T' ){
                     actualRecord.selectLineItem('item', i);
                     actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "Not Eligible");
                     actualRecord.commitLineItem('item');
 
-                }else if(quantityavailableInItem >= 0 && isclosedItem != 'T') {
+                }else if(quantityavailableInItem >= qtyInMyItem && quantityavailableInItem != 0 && isclosedItem != 'T') {
                     if(myItemElegible){
                         actualRecord.selectLineItem('item', i);
                         actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "In Stock");
@@ -848,27 +849,21 @@ function saleOrderWeb(type,record) {
                         actualRecord.commitLineItem('item');
                     }
                    
-                } else if (quantityavailableInItem < 0 && isclosedItem != 'T') {
-                    var compare =  quantityavailableInItem * -1;
-
-                    if(compare >= qtyInMyItem){
-
-                    actualRecord.selectLineItem('item', i);
-                    var cantidad = individualItemStock(arrayItemsIndividuales,myIdIndividual);
-                    actualRecord.setCurrentLineItemValue('item', 'quantity', cantidad);
-                    actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "Out Stock");
-                    actualRecord.commitLineItem('item'); 
-                    }else{
+                } else if (quantityavailableInItem < qtyInMyItem && quantityavailableInItem > 0 && isclosedItem != 'T') {
                     actualRecord.selectLineItem('item', i);
                     var cantidad = individualItemStock(arrayItemsIndividuales,myIdIndividual);
                     actualRecord.setCurrentLineItemValue('item', 'quantity', cantidad);
                     actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "Not Enough Stock");
-                    actualRecord.commitLineItem('item'); 
-                    }
+                    actualRecord.commitLineItem('item');
 
-                   
+                } else if (quantityavailableInItem <= 0 && isclosedItem != 'T') {
+                    actualRecord.selectLineItem('item', i);
+                    var cantidad = individualItemStock(arrayItemsIndividuales,myIdIndividual);
+                    actualRecord.setCurrentLineItemValue('item', 'quantity', cantidad);
+                    actualRecord.setCurrentLineItemValue('item', 'custcol_tt_igstatus', "Out Stock");
+                    actualRecord.commitLineItem('item');
 
-                } 
+                }
 
                 
 
@@ -885,8 +880,8 @@ function saleOrderWeb(type,record) {
         try {
             if(soIsAmazon && totalAmazonBox > 0){actualRecord.setFieldValue('custbody_so_amazontotalcarton', totalAmazonBox)}            
            
-           
-
+            start();
+            
             nlapiSubmitRecord(actualRecord, true, true);
             
         } catch (e) {
